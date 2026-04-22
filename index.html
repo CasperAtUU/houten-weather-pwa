@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4fc3f7">
+    <meta name="description" content="Real-time weather for Houten, Netherlands">
+    
+    <title>Houten Weather</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234fc3f7' width='192' height='192' rx='40'/><circle cx='96' cy='60' r='25' fill='%23fff'/><path d='M 60 100 Q 60 140 96 140 Q 132 140 132 100' stroke='%23fff' stroke-width='8' fill='none'/><circle cx='50' cy='110' r='5' fill='%23fff'/><circle cx='142' cy='110' r='5' fill='%23fff'/></svg>">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f1923;
+            --bg-secondary: #162230;
+            --text-primary: #e8f4fd;
+            --text-secondary: #7bafc8;
+            --accent: #4fc3f7;
+            --error: #ef5350;
+        }
+
+        body {
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 16px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background-color: var(--bg-secondary);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .card.wide {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            border: none;
+            padding: 0;
+            margin-bottom: 16px;
+        }
+
+        .card.wide > div {
+            background-color: var(--bg-secondary);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .metric-value.large {
+            font-size: 48px;
+        }
+
+        .metric-delta {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .emoji {
+            font-size: 32px;
+            margin-top: 8px;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: var(--bg-primary);
+            margin: 20px 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .grid-3 .card {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 12px;
+        }
+
+        .rain-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .rain-table th {
+            text-align: left;
+            color: var(--text-secondary);
+            padding: 8px 0;
+            border-bottom: 1px solid var(--bg-secondary);
+            font-weight: 500;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .rain-table td {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--bg-primary);
+        }
+
+        .rain-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 16px;
+        }
+
+        .error {
+            background-color: var(--error);
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: var(--accent);
+            color: var(--bg-primary);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 12px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #7dd3fc;
+        }
+
+        button:active {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .metric-value {
+                font-size: 28px;
+            }
+
+            .metric-value.large {
+                font-size: 40px;
+            }
+
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌤️ Houten Weather</h1>
+        <p class="subtitle">Real-time weather for Houten, Netherlands</p>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div class="card wide">
+            <div>
+                <div class="metric-label">Temperature</div>
+                <div class="metric-value large" id="temp">--°</div>
+                <div class="metric-delta" id="feels">Feels like --°</div>
+            </div>
+            <div>
+                <div class="metric-label">Condition</div>
+                <div class="emoji" id="emoji">…</div>
+                <div class="metric-value" style="font-size: 16px; margin-top: 12px;" id="condition">Loading…</div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="grid-3">
+            <div class="card">
+                <div class="metric-label">Wind</div>
+                <div class="metric-value" id="wind">--</div>
+                <div class="metric-delta">m/s</div>
+            </div>
+            <div class="card">
+                <div class="metric-label">Updated</div>
+                <div class="metric-value" id="updated" style="font-size: 20px;">--:--</div>
+            </div>
+            <div class="card">
+                <div class="metric-label">Location</div>
+                <div class="metric-value" style="font-size: 14px;">Houten, NL</div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">☀️ Sun Times (Amsterdam)</div>
+        <div class="card wide">
+            <div>
+                <div class="metric-label">Sunrise</div>
+                <div class="metric-value" id="sunrise">--:--</div>
+            </div>
+            <div>
+                <div class="metric-label">Sunset</div>
+                <div class="metric-value" id="sunset">--:--</div>
+            </div>
+        </div>
+
+        <div class="section-title">🌧️ Rain Forecast (Next 6 Hours)</div>
+        <div class="card">
+            <table class="rain-table">
+                <thead>
+                    <tr>
+                        <th>Hour</th>
+                        <th>Precip (mm)</th>
+                        <th>Probability</th>
+                    </tr>
+                </thead>
+                <tbody id="rainTable">
+                    <tr><td colspan="3">Loading…</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <button onclick="refreshWeather()">🔄 Refresh Now</button>
+
+        <div class="status" id="status">
+            ✓ Data refreshes every 10 minutes
+        </div>
+    </div>
+
+    <script>
+        // Config
+        const LATITUDE = 52.0294;
+        const LONGITUDE = 5.1692;
+        const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
+
+        const WMO_CODES = {
+            0: { label: "Clear sky", emoji: "☀️" },
+            1: { label: "Mainly clear", emoji: "🌤️" },
+            2: { label: "Partly cloudy", emoji: "⛅" },
+            3: { label: "Overcast", emoji: "☁️" },
+            45: { label: "Foggy", emoji: "🌫️" },
+            48: { label: "Icy fog", emoji: "🌫️" },
+            51: { label: "Light drizzle", emoji: "🌦️" },
+            53: { label: "Drizzle", emoji: "🌦️" },
+            55: { label: "Heavy drizzle", emoji: "🌧️" },
+            61: { label: "Slight rain", emoji: "🌧️" },
+            63: { label: "Rain", emoji: "🌧️" },
+            65: { label: "Heavy rain", emoji: "🌧️" },
+            71: { label: "Slight snow", emoji: "🌨️" },
+            73: { label: "Snow", emoji: "❄️" },
+            75: { label: "Heavy snow", emoji: "❄️" },
+            77: { label: "Snow grains", emoji: "🌨️" },
+            80: { label: "Rain showers", emoji: "🌦️" },
+            81: { label: "Rain showers", emoji: "🌧️" },
+            82: { label: "Violent showers", emoji: "⛈️" },
+            85: { label: "Snow showers", emoji: "🌨️" },
+            86: { label: "Heavy snow showers", emoji: "❄️" },
+            95: { label: "Thunderstorm", emoji: "⛈️" },
+            96: { label: "Thunderstorm + hail", emoji: "⛈️" },
+            99: { label: "Thunderstorm + hail", emoji: "⛈️" },
+        };
+
+        async function fetchWeather() {
+            try {
+                const url = new URL("https://api.open-meteo.com/v1/forecast");
+                url.searchParams.append("latitude", LATITUDE);
+                url.searchParams.append("longitude", LONGITUDE);
+                url.searchParams.append("current", "temperature_2m,apparent_temperature,weathercode,windspeed_10m");
+                url.searchParams.append("hourly", "precipitation,precipitation_probability");
+                url.searchParams.append("daily", "sunrise,sunset");
+                url.searchParams.append("wind_speed_unit", "ms");
+                url.searchParams.append("timezone", "Europe/Amsterdam");
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const cur = data.current;
+                const code = parseInt(cur.weathercode);
+                const weatherData = WMO_CODES[code] || { label: "Unknown", emoji: "🌡️" };
+
+                const daily = data.daily;
+                const sunrise = daily.sunrise[0].split("T")[1].slice(0, 5);
+                const sunset = daily.sunset[0].split("T")[1].slice(0, 5);
+
+                const hourly = data.hourly;
+                const now = new Date();
+                const hourlyData = [];
+                for (let i = 0; i < 6; i++) {
+                    hourlyData.push({
+                        precip: hourly.precipitation[i],
+                        prob: hourly.precipitation_probability[i],
+                    });
+                }
+
+                return {
+                    temp: Math.round(cur.temperature_2m),
+                    feels: Math.round(cur.apparent_temperature),
+                    wind: (Math.round(cur.windspeed_10m * 10) / 10).toFixed(1),
+                    condition: weatherData.label,
+                    emoji: weatherData.emoji,
+                    sunrise,
+                    sunset,
+                    hourly: hourlyData,
+                    updated: now.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" }),
+                };
+            } catch (error) {
+                console.error("Weather fetch error:", error);
+                return null;
+            }
+        }
+
+        function displayWeather(data) {
+            if (!data) {
+                document.getElementById("error").textContent = "❌ Could not fetch weather data";
+                document.getElementById("error").style.display = "block";
+                return;
+            }
+
+            document.getElementById("error").style.display = "none";
+
+            document.getElementById("temp").textContent = `${data.temp}°`;
+            document.getElementById("feels").textContent = `Feels like ${data.feels}°`;
+            document.getElementById("emoji").textContent = data.emoji;
+            document.getElementById("condition").textContent = data.condition;
+            document.getElementById("wind").textContent = data.wind;
+            document.getElementById("updated").textContent = data.updated;
+            document.getElementById("sunrise").textContent = data.sunrise;
+            document.getElementById("sunset").textContent = data.sunset;
+
+            // Rain table
+            const tbody = document.getElementById("rainTable");
+            tbody.innerHTML = "";
+            const now = new Date();
+            data.hourly.forEach((h, i) => {
+                const hour = String((now.getHours() + i) % 24).padStart(2, "0");
+                const row = `
+                    <tr>
+                        <td>${hour}:00</td>
+                        <td>${h.precip.toFixed(1)}</td>
+                        <td>${h.prob}%</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        async function refreshWeather() {
+            const data = await fetchWeather();
+            displayWeather(data);
+        }
+
+        // Initial load
+        refreshWeather();
+
+        // Auto-refresh every 10 minutes
+        setInterval(refreshWeather, REFRESH_INTERVAL);
+
+        // Register service worker
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js").catch(err => {
+                console.log("Service Worker registration failed:", err);
+            });
+        }
+    </script>
+</body>
+</html>

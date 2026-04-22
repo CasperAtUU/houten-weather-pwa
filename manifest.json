@@ -1,0 +1,19 @@
+{
+  "name": "Houten Weather",
+  "short_name": "Weather",
+  "description": "Real-time weather for Houten, Netherlands",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#4fc3f7",
+  "background_color": "#0f1923",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234fc3f7' width='192' height='192' rx='40'/><circle cx='96' cy='60' r='25' fill='%23fff'/><path d='M 60 100 Q 60 140 96 140 Q 132 140 132 100' stroke='%23fff' stroke-width='8' fill='none'/><circle cx='50' cy='110' r='5' fill='%23fff'/><circle cx='142' cy='110' r='5' fill='%23fff'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
