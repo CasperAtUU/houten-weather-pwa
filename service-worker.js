@@ -2,9 +2,9 @@
 const CACHE_NAME = "houten-weather-v1";
 
 const ASSETS_TO_CACHE = [
-  "/",
-  "/index.html",
-  "/manifest.json",
+  "/houten-weather-pwa/",
+  "/houten-weather-pwa/index.html",
+  "/houten-weather-pwa/manifest.json",
 ];
 
 // Install: cache assets
